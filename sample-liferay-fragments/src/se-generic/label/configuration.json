@@ -1,0 +1,28 @@
+{
+  "fieldSets": [
+      {
+          "fields": [
+              {
+                  "name": "Type",
+                  "label": "Type",
+                  "description": "urgency",
+                  "type": "select",
+                  "dataType": "string",
+                  "typeOptions": {
+                      "validValues": [
+                          {"value": "primary"},
+                          {"value": "secondary"},
+                          {"value": "light"},
+                          {"value": "dark"},
+                          {"value": "danger"},
+                          {"value": "success"},
+                          {"value": "warning"},
+                          {"value": "info"}
+                      ]
+                  },
+                  "defaultValue": "primary"
+              }
+          ]
+      }
+  ]
+}
