@@ -1,0 +1,43 @@
+{
+    "fieldSets": [
+        {
+            "fields": [
+                {
+                    "name": "showAudioControl",
+                    "label": "Show Audio Control",
+                    "description": "show-audio-control",
+                    "type": "checkbox",
+                    "defaultValue": false
+                },
+				{
+                    "name": "autoPlay",
+                    "label": "Auto Play",
+                    "description": "autoplay",
+                    "type": "checkbox",
+                    "defaultValue": true
+                },
+				{
+                    "name": "numberOfSnowflakes",
+                    "label": "Number of Snowflakes",
+                    "description": "number-of-snowflakes",
+                    "type": "text",
+                    "typeOptions": {
+                        "placeholder": "# of snowflakes"
+                    },
+                    "dataType": "string",
+                    "defaultValue": "5000"
+                },{
+                    "name": "speedOfSnowflakes",
+                    "label": "Speed of Snowflakes",
+                    "description": "speed-of-snowflakes",
+                    "type": "text",
+                    "typeOptions": {
+                        "placeholder": "speed of snowflakes"
+                    },
+                    "dataType": "string",
+                    "defaultValue": "5000"
+                }
+            ]
+        }
+    ]
+}
