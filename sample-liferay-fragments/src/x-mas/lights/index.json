@@ -1,0 +1,20 @@
+{
+    "fieldSets": [
+        {
+            "fields": [
+                
+				{
+                    "name": "numberOfLights",
+                    "label": "Number of Lights",
+                    "description": "number-of-lights",
+                    "type": "text",
+                    "typeOptions": {
+                        "placeholder": "# of lights (150 max)"
+                    },
+                    "dataType": "string",
+                    "defaultValue": "5"
+                }
+            ]
+        }
+    ]
+}
