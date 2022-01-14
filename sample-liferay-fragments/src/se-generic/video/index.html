@@ -1,0 +1,28 @@
+<video id="videoplayer" oncanplay= "videoCanPlay()" onended="videoEnded()" autoplay controls>
+	<source id="youtube" src="https://file-examples-com.github.io/uploads/2017/04/file_example_MP4_480_1_5MG.mp4" type="video/mp4">
+</video>
+
+<script> 
+	
+function videoCanPlay() {
+	console.log("video can play");
+	//var vid = document.getElementById("videoplayer");
+	Analytics.track("Video Played",{
+    'assetid': 'to be implemented',
+    'status': 'ready to play'
+	});
+	
+	console.log("custom event tracked");
+}
+	
+function videoEnded() {
+	console.log("video ended");
+	//var vid = document.getElementById("videoplayer");
+	Analytics.track("Video Played",{
+    'assetid': 'to be implemented',
+    'status': 'fully played'
+	});
+	
+	console.log("custom event tracked");
+}
+</script>
