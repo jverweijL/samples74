@@ -1,0 +1,17 @@
+.fragment_703 {
+	box-shadow: 2px 2px 15px grey;
+	border-left-style:solid;
+	border-left-width: 15px;
+	border-left-color: var(--color-brand-primary);
+	padding: 20px;
+}
+
+#title {
+	 text-transform: uppercase;
+	 margin-bottom: 15px;
+	font-weight: 600;
+}
+
+#body {
+	margin-bottom: 15px;
+}

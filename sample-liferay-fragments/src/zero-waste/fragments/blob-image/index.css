@@ -1,0 +1,11 @@
+.u-svg-content {
+	fill:var(--color-brand-primary);
+}
+
+.blob-image {
+	  position: absolute;
+    border-radius: 50% !important;
+	  width: 75%;
+	  right: 0px;
+	  bottom: 0px;
+}

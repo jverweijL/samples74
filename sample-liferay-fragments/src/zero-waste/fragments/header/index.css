@@ -1,0 +1,12 @@
+.fragment_701 {
+	font-size: 3em;
+	font-weight: 500;
+	width: 100%;
+}
+
+.fragment_701 > .marker {
+	width: 15%;
+	border-bottom-color: var(--color-brand-primary);
+	border-bottom-width: 10px;
+	border-bottom-style: solid;
+}
