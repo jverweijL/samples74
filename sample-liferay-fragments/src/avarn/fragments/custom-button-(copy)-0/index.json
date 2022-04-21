@@ -1,0 +1,19 @@
+{
+    "fieldSets": [
+        {
+            "fields": [
+                {
+                    "name": "icon",
+                    "label": "Icon",
+                    "description": "icon-text",
+                    "type": "text",
+                    "typeOptions": {
+                        "placeholder": "Check https://clayui.com/docs/components/icon.html"
+                    },
+                    "dataType": "string",
+                    "defaultValue": "user"
+                }
+            ]
+        }
+    ]
+}

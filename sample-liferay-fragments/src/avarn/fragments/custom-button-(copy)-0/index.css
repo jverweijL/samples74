@@ -1,0 +1,27 @@
+.avarn-button {
+	background-color: var(--color-neutral-10);
+	color: var(--color-neutral-0);
+	opacity: 68%;
+	border-bottom-style: solid;
+	border-bottom-width: 4px;
+	border-bottom-color: var(--color-brand-primary);
+	padding: var(--spacer-2);
+	text-align: center;
+}
+
+.avarn-button > div .icon {
+	margin-right: var(--spacer-2);
+	font-size: 1.2em;
+}
+
+.avarn-button > div > a {
+  color: var(--color-neutral-0) !important;
+}
+
+.avarn-button > div > a:link {
+  color: var(--color-neutral-0) !important;
+}
+
+.avarn-button > div > a:visited {
+  color: var(--color-neutral-0) !important;
+}

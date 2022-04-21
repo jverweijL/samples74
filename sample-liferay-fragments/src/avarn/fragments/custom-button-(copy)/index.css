@@ -1,0 +1,8 @@
+.avarn-contact {
+	
+}
+
+.avarn-contact > div .icon {
+	margin-right: var(--spacer-2);
+	font-size: 1.2em;
+}
