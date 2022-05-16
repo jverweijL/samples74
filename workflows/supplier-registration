@@ -1,0 +1,305 @@
+<?xml version="1.0"?>
+
+<workflow-definition
+	xmlns="urn:liferay.com:liferay-workflow_7.4.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="urn:liferay.com:liferay-workflow_7.4.0 http://www.liferay.com/dtd/liferay-workflow-definition_7_4_0.xsd"
+>
+	<version>7</version>
+	<state>
+		<name>Process Form</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						100,
+						40
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>Populate WorkflowContext</name>
+				<script>
+					<![CDATA[import com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecordVersion;
+import com.liferay.dynamic.data.mapping.model.Value;
+import com.liferay.dynamic.data.mapping.service.DDMFormInstanceRecordVersionLocalServiceUtil;
+import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.workflow.WorkflowStatusManagerUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
+
+import java.util.Locale;
+
+def normaliseValue(String value) {
+    if (value == null || "".equals(value)) {
+        return value;
+    }
+    return value.replaceAll("\\[\"","").replaceAll("\"\\]","");
+}
+
+final Log logger = LogFactoryUtil.getLog("Supplier Registration - Populate WorkflowContext");
+
+final long recVerId = GetterUtil.getLong((String)workflowContext.get(WorkflowConstants.CONTEXT_ENTRY_CLASS_PK));
+final DDMFormInstanceRecordVersion recVer = DDMFormInstanceRecordVersionLocalServiceUtil.getFormInstanceRecordVersion(recVerId);
+final Locale locale = recVer.getDDMForm().getDefaultLocale();
+final List<DDMFormFieldValue> formFieldVals = recVer.getDDMFormValues().getDDMFormFieldValues();
+
+final List<String> requiredFieldReferences = Arrays.asList("emailAddress", "forename", "surname");
+
+for (DDMFormFieldValue fmval : formFieldVals) {
+    final String fieldReference = fmval.getFieldReference();
+    if (requiredFieldReferences.contains(fieldReference)) {
+        final Value val = fmval.getValue();
+        final String data = normaliseValue(val.getString(Locale.ROOT));
+        logger.info("Adding " + fieldReference + " : " + data + " to the WorkflowContext");
+        workflowContext.put(fieldReference, data);
+    }
+}
+
+workflowContext.put("recVerId", recVerId);
+workflowContext.put("locale", locale);
+WorkflowStatusManagerUtil.updateStatus(WorkflowConstants.getLabelStatus("pending"), workflowContext);]]>
+				</script>
+				<script-language>groovy</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+			<action>
+				<name>Update Audit</name>
+				<description>Supplier registration received</description>
+				<script>
+					<![CDATA[import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
+import com.liferay.object.service.ObjectEntryLocalServiceUtil;
+
+def audit(final long userId, final String emailAddress, final String supplier, final String action, ServiceContext serviceContext) {
+    final groupId = 0;
+    final objectDefinitionId = 53145
+    final Map<String, Serializable> values = new HashMap<String, Serializable>() {{
+        put("entryDate", new Date());
+        put("supplier", supplier);
+        put("action", action);
+        put("userEmail", emailAddress);
+    }};
+    ObjectEntryLocalServiceUtil.addObjectEntry(userId, groupId, objectDefinitionId, values, serviceContext != null ? serviceContext : new ServiceContext());
+}
+
+final Log logger = LogFactoryUtil.getLog("Supplier Registration - Update Audit");
+
+try {
+    final String emailAddress = workflowContext.get("emailAddress");
+
+    final long companyId = Long.parseLong(workflowContext.get("companyId"));
+    final Company company = CompanyLocalServiceUtil.getCompany(companyId);
+    final User user = company.getDefaultUser();
+
+    if (user != null) {
+        audit(user.getUserId(), emailAddress, "N/A", "Supplier registration received", serviceContext);
+    }
+} catch (Exception e) {
+    logger.error(e);
+}]]>
+				</script>
+				<script-language>groovy</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+		</actions>
+		<initial>true</initial>
+		<transitions>
+			<transition>
+				<name>register</name>
+				<target>Send Email</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<state>
+		<name>Send Email</name>
+		<metadata>
+			<![CDATA[
+				{
+					"terminal": true,
+					"xy": [
+						321,
+						36
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>Create User Account</name>
+				<description>A validation email is send out after the account is created</description>
+				<script>
+					<![CDATA[import com.liferay.expando.kernel.model.ExpandoBridge;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.workflow.WorkflowStatusManagerUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
+
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
+import javax.servlet.http.HttpServletRequest;
+
+final Log logger = LogFactoryUtil.getLog("Supplier Registration - Create User");
+
+try {
+  final long companyId = Long.parseLong(workflowContext.get("companyId"));
+  final long groupId = Long.parseLong(workflowContext.get("groupId"));
+  final String emailAddress = workflowContext.get("emailAddress");
+
+  User user = UserLocalServiceUtil.fetchUserByEmailAddress(companyId, emailAddress);
+
+  if (user != null) {
+    logger.warn("A user already exists with email address " + emailAddress);
+    WorkflowStatusManagerUtil.updateStatus(WorkflowConstants.getLabelStatus("denied"), workflowContext);
+    return;
+  }
+
+  final Company company = CompanyLocalServiceUtil.getCompany(companyId);
+
+  final boolean autoPassword = true;
+  final boolean autoScreenName = true;
+  final boolean male = false;
+  final boolean sendAccountCreationEmail = false;
+  final long prefixId = -1L;
+  final long suffixId = -1L;
+  final long[] siteIds = [ groupId ];
+  final Calendar dob = new GregorianCalendar(1970, 1, 1);
+
+  final String forename = workflowContext.get("forename");
+  final String surname = workflowContext.get("surname");
+
+  final User defaultUser = company.getDefaultUser();
+  final long creatorUserId = defaultUser != null ? defaultUser.getUserId() : -1;
+
+  String portalURL = company.getPortalURL(groupId);
+  if (portalURL.contains(".lfr.cloud")) {
+    logger.info("Updating portalURL for DXP Cloud");
+    portalURL = portalURL.replace("http://", "https://");
+    portalURL = portalURL.replaceAll(":\\d+", "");
+  }
+
+  ServiceContext serviceContext = ServiceContextThreadLocal.getServiceContext();
+
+  if (serviceContext == null) {
+    logger.info("Creating new serviceContext");
+    serviceContext = new ServiceContext();
+  }
+
+  serviceContext.setCompanyId(companyId);
+  serviceContext.setUserId(creatorUserId);
+  serviceContext.setPortalURL(portalURL);
+  serviceContext.setPathMain(PortalUtil.getPathMain());
+  serviceContext.setScopeGroupId(groupId);
+
+  Locale locale = workflowContext.get("locale");;
+  if (locale == null) {
+    locale = LocaleUtil.getDefault();
+  }
+
+  User newUser = UserLocalServiceUtil.addUser(serviceContext.getUserId(), companyId, autoPassword, null, null,
+      autoScreenName, null, emailAddress, locale, forename, null,
+      surname, prefixId, suffixId, male, (dob.get(Calendar.MONTH) - 1),
+      dob.get(Calendar.DATE), dob.get(Calendar.YEAR), null, siteIds, null, null, null, sendAccountCreationEmail,
+      serviceContext);
+
+  if (!sendAccountCreationEmail) {
+    logger.info("Sending verification email to " + emailAddress);
+  } else {
+    logger.info("Sending account creation email to " + emailAddress);
+  }
+
+  PermissionChecker checker = PermissionCheckerFactoryUtil.create(newUser);
+  PermissionThreadLocal.setPermissionChecker(checker);
+
+  ExpandoBridge userExpandoBridge = newUser.getExpandoBridge();
+
+  final String isSupplier = "Is Supplier";
+  if (userExpandoBridge.hasAttribute(isSupplier)) {
+    logger.info("Mark user as Supplier");
+    userExpandoBridge.setAttribute(isSupplier, true);
+  }
+
+  final String applicationSubmitted = "Application Submitted";
+  if (userExpandoBridge.hasAttribute(applicationSubmitted)) {
+    logger.info("Mark user has needing to submit application");
+    userExpandoBridge.setAttribute(applicationSubmitted, false);
+  }
+
+  newUser.setStatus(WorkflowConstants.STATUS_APPROVED);
+  UserLocalServiceUtil.updateUser(newUser);
+
+  WorkflowStatusManagerUtil.updateStatus(WorkflowConstants.getLabelStatus("approved"), workflowContext);
+} catch(Exception e) {
+  logger.error(e);
+  WorkflowStatusManagerUtil.updateStatus(WorkflowConstants.getLabelStatus("incomplete"), workflowContext);
+}]]>
+				</script>
+				<script-language>groovy</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+			<action>
+				<name>Update Audit</name>
+				<script>
+					<![CDATA[import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import com.liferay.object.service.ObjectEntryLocalServiceUtil;
+
+def audit(final long userId, final String emailAddress, final String supplier, final String action, ServiceContext serviceContext) {
+    final groupId = 0;
+    final objectDefinitionId = 53145
+    final Map<String, Serializable> values = new HashMap<String, Serializable>() {{
+        put("entryDate", new Date());
+        put("supplier", supplier);
+        put("action", action);
+        put("userEmail", emailAddress);
+    }};
+    ObjectEntryLocalServiceUtil.addObjectEntry(userId, groupId, objectDefinitionId, values, serviceContext != null ? serviceContext : new ServiceContext());
+}
+
+final Log logger = LogFactoryUtil.getLog("Supplier Registration - Update Audit");
+
+try {
+    final String emailAddress = workflowContext.get("emailAddress");
+
+    final long companyId = Long.parseLong(workflowContext.get("companyId"));
+    final User user = UserLocalServiceUtil.fetchUserByEmailAddress(companyId, emailAddress)
+
+    if (user != null) {
+        audit(user.getUserId(), user.getEmailAddress(), "N/A", "Supplier user account created", serviceContext);
+    }
+} catch (Exception e) {
+    logger.error(e);
+}]]>
+				</script>
+				<script-language>groovy</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+		</actions>
+	</state>
+</workflow-definition>

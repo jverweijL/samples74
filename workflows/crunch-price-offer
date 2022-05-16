@@ -1,0 +1,144 @@
+<?xml version="1.0"?>
+
+<workflow-definition
+	xmlns="urn:liferay.com:liferay-workflow_7.4.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="urn:liferay.com:liferay-workflow_7.4.0 http://www.liferay.com/dtd/liferay-workflow-definition_7_4_0.xsd"
+>
+	<version>2</version>
+	<state>
+		<name>StartNode</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						58,
+						38
+					]
+				}
+			]]>
+		</metadata>
+		<initial>true</initial>
+		<transitions>
+			<transition>
+				<name>Notify the Crunch ORL</name>
+				<target>Share price for package with user</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<state>
+		<name>EndNode</name>
+		<metadata>
+			<![CDATA[
+				{
+					"terminal": true,
+					"xy": [
+						665,
+						43
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>Approve</name>
+				<description>Approve</description>
+				<script>
+					<![CDATA[com.liferay.portal.kernel.workflow.WorkflowStatusManagerUtil.updateStatus(com.liferay.portal.kernel.workflow.WorkflowConstants.getLabelStatus("approved"), workflowContext);]]>
+				</script>
+				<script-language>groovy</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+		</actions>
+	</state>
+	<task>
+		<name>Share price for package with user</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						183,
+						194
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<notification>
+				<name>Notify Marketer</name>
+				<description>
+					<![CDATA[A user has submitted a form for Crunch Upgrade]]>
+				</description>
+				<template>
+					<![CDATA[Please share a price with the user via Workflow comments and allow the user to accept or decline]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<roles>
+						<role><role-id>43979</role-id></role>
+					</roles>
+				</recipients>
+				<execution-type>onEntry</execution-type>
+			</notification>
+		</actions>
+		<assignments>
+			<roles>
+				<role><role-id>43979</role-id></role>
+			</roles>
+		</assignments>
+		<transitions>
+			<transition>
+				<name>Share price with customer</name>
+				<target>Accept or decline price</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</task>
+	<task>
+		<name>Accept or decline price</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						421,
+						238
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<notification>
+				<name>A price for the Crunch upgrade</name>
+				<description>
+					<![CDATA[A price for the Crunch Upgrade]]>
+				</description>
+				<template>
+					<![CDATA[A price for the Crunch upgrade has been shared with you in the workflow comments. Please accept or decline]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<user />
+				</recipients>
+				<execution-type>onEntry</execution-type>
+			</notification>
+		</actions>
+		<assignments>
+			<user />
+		</assignments>
+		<transitions>
+			<transition>
+				<name>Decline</name>
+				<target>Share price for package with user</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Accept</name>
+				<target>EndNode</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</task>
+</workflow-definition>

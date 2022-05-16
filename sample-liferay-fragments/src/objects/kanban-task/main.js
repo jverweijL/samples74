@@ -66,7 +66,9 @@ function updateProgress( progress, objectId ){
     if(progress > 95){
         progress = 100;
 
-        payload = '{"taskStatus": "done", "taskProgress": "'+progress+'"}';
+        payload = '{"taskProgress": "'+progress+'", "taskStatus": {"key": "done"}}';
+    } else if (progress > 0) {
+        payload = '{"taskProgress": "'+progress+'", "taskStatus": {"key": "inprogress"}}';
     } else {
         payload = '{"taskProgress": "'+progress+'" }';
     }
