@@ -1,0 +1,19 @@
+{
+    "fieldSets": [
+        {
+            "fields": [
+                {
+                    "name": "tickersymbol",
+                    "label": "Ticker Symbol",
+                    "description": "ticker-symbol",
+                    "type": "text",
+                    "typeOptions": {
+                        "placeholder": "Enter a ticker symbol"
+                    },
+                    "dataType": "string",
+                    "defaultValue": "BER-BAS"
+                }
+            ]
+        }
+    ]
+}
