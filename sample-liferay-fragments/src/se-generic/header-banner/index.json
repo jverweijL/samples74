@@ -1,0 +1,42 @@
+{
+    "fieldSets": [
+        {
+            "fields": [
+                {
+                    "name": "position",
+                    "label": "Object Position Top-Bottom",
+                    "description": "position-top-bottom",
+                    "type": "select",
+                    "dataType": "int",
+                    "typeOptions": {
+                        "validValues": [
+													{"value": "0"},
+                            {"value": "10"},
+                            {"value": "20"},
+                            {"value": "30"},
+													{"value": "40"},
+													{"value": "50"},
+													{"value": "60"},
+													{"value": "70"},
+													{"value": "80"},
+													{"value": "90"},
+													{"value": "100"},
+                        ]
+                    },
+                    "defaultValue": "50"
+                },
+							{
+                    "name": "height",
+                    "label": "Height of Image",
+                    "description": "image-height",
+                    "type": "text",
+                    "typeOptions": {
+                        "placeholder": "Type # of pixels"
+                    },
+                    "dataType": "string",
+                    "defaultValue": "300"
+                }
+            ]
+        }
+    ]
+}
