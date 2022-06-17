@@ -1,0 +1,73 @@
+{
+  "schemaVersion" : "1.0",
+  "title_i18n" : {
+    "en_US" : "Custom Distance"
+  },
+  "description_i18n" : {
+    "en_US" : "Boost contents within distance. Additional setup is required."
+  },
+  "type" : 0,
+  "elementDefinition" : {
+    "uiConfiguration" : {
+      "fieldSets" : [ {
+        "fields" : [ {
+          "helpText" : "A geopoint field",
+          "defaultValue" : "ddmFieldArray.ddmFieldValueKeyword_en_US_geolocation",
+          "name" : "field",
+          "label" : "Field",
+          "type" : "string"
+        }, {
+          "defaultValue" : 100,
+          "name" : "distance",
+          "typeOptions" : {
+            "unit" : "km",
+            "min" : 0,
+            "unitSuffix" : "km"
+          },
+          "label" : "Distance",
+          "type" : "number"
+        }, {
+          "defaultValue" : 2,
+          "name" : "boost",
+          "typeOptions" : {
+            "min" : 0
+          },
+          "label" : "Boost",
+          "type" : "number"
+        } ]
+      } ]
+    },
+    "configuration" : {
+      "queryConfiguration" : {
+        "queryEntries" : [ {
+          "clauses" : [ {
+            "occur" : "should",
+            "query" : {
+              "nested" : {
+                "path" : "ddmFieldArray",
+                "query" : {
+                  "bool" : {
+                    "should" : {
+                      "distance_feature" : {
+                        "field" : "${configuration.field}",
+                        "origin" : {
+                          "lon" : "${ipstack.longitude}",
+                          "lat" : "${ipstack.latitude}"
+                        },
+                        "pivot" : "${configuration.distance}",
+                        "boost" : "${configuration.boost}"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "context" : "query"
+          } ]
+        } ]
+      }
+    },
+    "icon" : "thumbs-up",
+    "category" : "My Custom Elements"
+  }
+}

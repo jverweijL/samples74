@@ -1,0 +1,156 @@
+{
+  "schemaVersion" : "1.0",
+  "title_i18n" : {
+    "en_US" : "Custom Nested Match"
+  },
+  "description_i18n" : {
+    "en_US" : "Search for a text match over multiple text fields."
+  },
+  "type" : 0,
+  "elementDefinition" : {
+    "uiConfiguration" : {
+      "fieldSets" : [ {
+        "fields" : [ {
+          "defaultValue" : [ {
+            "field" : "content",
+            "boost" : "1",
+            "locale" : "${context.language_id}"
+          } ],
+          "name" : "fields",
+          "typeOptions" : {
+            "boost" : true
+          },
+          "label" : "Fields",
+          "type" : "fieldMappingList"
+        }, {
+          "defaultValue" : "or",
+          "name" : "operator",
+          "typeOptions" : {
+            "options" : [ {
+              "label" : "OR",
+              "value" : "or"
+            }, {
+              "label" : "AND",
+              "value" : "and"
+            } ]
+          },
+          "label" : "Operator",
+          "type" : "select"
+        }, {
+          "defaultValue" : "best_fields",
+          "name" : "type",
+          "typeOptions" : {
+            "options" : [ {
+              "label" : "Best Fields",
+              "value" : "best_fields"
+            }, {
+              "label" : "Most Fields",
+              "value" : "most_fields"
+            }, {
+              "label" : "Cross Fields",
+              "value" : "cross_fields"
+            }, {
+              "label" : "Phrase",
+              "value" : "phrase"
+            }, {
+              "label" : "Phrase Prefix",
+              "value" : "phrase_prefix"
+            }, {
+              "label" : "Boolean Prefix",
+              "value" : "bool_prefix"
+            } ]
+          },
+          "label" : "Match Type",
+          "type" : "select"
+        }, {
+          "helpText" : "Only use fuzziness with the following match types: most fields, best fields, bool prefix.",
+          "defaultValue" : "AUTO",
+          "name" : "fuzziness",
+          "typeOptions" : {
+            "nullable" : true,
+            "options" : [ {
+              "label" : "Auto",
+              "value" : "AUTO"
+            }, {
+              "label" : "0",
+              "value" : "0"
+            }, {
+              "label" : "1",
+              "value" : "1"
+            }, {
+              "label" : "2",
+              "value" : "2"
+            } ]
+          },
+          "label" : "Fuzziness",
+          "type" : "select"
+        }, {
+          "defaultValue" : "0",
+          "name" : "minimum_should_match",
+          "typeOptions" : {
+            "nullable" : true
+          },
+          "label" : "Minimum Should Match",
+          "type" : "text"
+        }, {
+          "helpText" : "Only use slop with the following match types: phrase, phrase prefix.",
+          "defaultValue" : "",
+          "name" : "slop",
+          "typeOptions" : {
+            "min" : 0,
+            "nullable" : true,
+            "step" : 1
+          },
+          "label" : "Slop",
+          "type" : "number"
+        }, {
+          "defaultValue" : 1,
+          "name" : "boost",
+          "typeOptions" : {
+            "min" : 0
+          },
+          "label" : "Boost",
+          "type" : "number"
+        }, {
+          "helpText" : "If this is set, the search terms entered in the search bar will be replaced by this value.",
+          "name" : "keywords",
+          "typeOptions" : {
+            "required" : false
+          },
+          "label" : "Text to Match",
+          "type" : "keywords"
+        } ]
+      } ]
+    },
+    "configuration" : {
+      "queryConfiguration" : {
+        "queryEntries" : [ {
+          "clauses" : [ {
+            "occur" : "must",
+            "query" : {
+              "nested" : {
+                "path" : "ddmFieldArray",
+                "query" : {
+                  "bool" : {
+                    "must" : [ {
+                      "match" : {
+                        "ddmFieldArray.ddmFieldName" : "ddm__keyword__45114__cities_en_US"
+                      }
+                    }, {
+                      "match" : {
+                        "ddmFieldArray.ddmFieldValueKeyword_en_US" : "${configuration.keywords}"
+                      }
+                    } ]
+                  }
+                }
+              }
+            },
+            "context" : "query"
+          } ]
+        } ]
+      }
+    },
+    "icon" : "picture",
+    "category" : "My Custom Elements"
+  }
+}

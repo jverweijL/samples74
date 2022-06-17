@@ -1,0 +1,87 @@
+{
+  "schemaVersion" : "1.0",
+  "title_i18n" : {
+    "en_US" : "Custom Boost Proximity"
+  },
+  "description_i18n" : {
+    "en_US" : "Boost contents in closer proximity to the search user with a Gaussian function. Additional setup is required."
+  },
+  "type" : 0,
+  "elementDefinition" : {
+    "uiConfiguration" : {
+      "fieldSets" : [ {
+        "fields" : [ {
+          "helpText" : "A geopoint field",
+          "defaultValue" : [ {
+            "field" : "ddmFieldValueKeyword_en_US_geolocation",
+            "locale" : ""
+          } ],
+          "name" : "field",
+          "label" : "Field",
+          "type" : "fieldMapping"
+        }, {
+          "defaultValue" : 0.3,
+          "name" : "decay",
+          "typeOptions" : {
+            "min" : 0.01,
+            "max" : 0.99,
+            "step" : 0.1
+          },
+          "label" : "Decay",
+          "type" : "slider"
+        }, {
+          "defaultValue" : 100,
+          "name" : "scale",
+          "typeOptions" : {
+            "unit" : "km",
+            "min" : 0,
+            "unitSuffix" : "km"
+          },
+          "label" : "Scale",
+          "type" : "number"
+        }, {
+          "defaultValue" : 2,
+          "name" : "boost",
+          "typeOptions" : {
+            "min" : 0
+          },
+          "label" : "Boost",
+          "type" : "number"
+        } ]
+      } ]
+    },
+    "configuration" : {
+      "queryConfiguration" : {
+        "queryEntries" : [ {
+          "clauses" : [ {
+            "occur" : "should",
+            "query" : {
+              "nested" : {
+                "path" : "ddmFieldArray",
+                "query" : {
+                  "function_score" : {
+                    "gauss" : {
+                      "ddmFieldArray.${configuration.field}" : {
+                        "offset" : 0,
+                        "origin" : {
+                          "lon" : "${ipstack.longitude}",
+                          "lat" : "${ipstack.latitude}"
+                        },
+                        "scale" : "${configuration.scale}",
+                        "decay" : "${configuration.decay}"
+                      }
+                    },
+                    "boost" : "${configuration.boost}"
+                  }
+                }
+              }
+            },
+            "context" : "query"
+          } ]
+        } ]
+      }
+    },
+    "icon" : "thumbs-up",
+    "category" : "My Custom Elements"
+  }
+}

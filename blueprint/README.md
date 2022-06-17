@@ -5,6 +5,7 @@ see also https://github.com/liferay-search/liferay-search-samples/tree/master/en
 - what about recommendations for products?
 - any other type of recommendation (e.g. experts)
 - find expert based on user profile + docs written
+- multiple search results on one page (experts + docs)
 - ???
 
 - ranking rules
