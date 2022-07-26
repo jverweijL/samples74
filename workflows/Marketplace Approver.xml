@@ -1,0 +1,296 @@
+<?xml version="1.0"?>
+
+<workflow-definition
+	xmlns="urn:liferay.com:liferay-workflow_7.4.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="urn:liferay.com:liferay-workflow_7.4.0 http://www.liferay.com/dtd/liferay-workflow-definition_7_4_0.xsd"
+>
+	<description>A single approver can approve a workflow content.</description>
+	<version>20</version>
+	<state>
+		<id>created</id>
+		<description>Begin a workflow.</description>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						164,
+						-111
+					]
+				}
+			]]>
+		</metadata>
+		<initial>true</initial>
+		<labels>
+			<label language-id="en_US">
+				created
+			</label>
+		</labels>
+		<transitions>
+			<transition>
+				<labels>
+					<label language-id="en_US">
+						Transition Label
+					</label>
+				</labels>
+				<id>aa6bcc96-99ae-48da-98a4-018abfc556c0</id>
+				<target>9aec29ee-309f-413b-a71f-856a27a827ec</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<state>
+		<id>approved</id>
+		<description>Conclude the workflow.</description>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						780,
+						60
+					],
+					"terminal": true
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>approve</name>
+				<description></description>
+				<script>
+					<![CDATA[
+						import com.liferay.portal.kernel.workflow.WorkflowConstants;
+						import com.liferay.portal.kernel.workflow.WorkflowStatusManagerUtil;
+						
+						println("approving");
+						WorkflowStatusManagerUtil.updateStatus(WorkflowConstants.getLabelStatus("approved"), workflowContext);
+					]]>
+				</script>
+				<script-language>groovy</script-language>
+				<priority>1</priority>
+				<execution-type>onEntry</execution-type>
+			</action>
+		</actions>
+		<labels>
+			<label language-id="en_US">
+				approved
+			</label>
+		</labels>
+	</state>
+	<state>
+		<id>9aec29ee-309f-413b-a71f-856a27a827ec</id>
+		<description>Execute actions in the workflow.</description>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						-97.53125,
+						47
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>Verify</name>
+				<description></description>
+				<script>
+					<![CDATA[import com.liferay.portal.workflow.kaleo.model.*;
+import com.liferay.portal.workflow.kaleo.service.*;
+import com.liferay.commerce.product.model.CPDefinition;
+import com.liferay.commerce.product.model.CommerceCatalog;
+import com.liferay.commerce.product.service.CPDefinitionLocalServiceUtil;
+
+KaleoInstance kaleoInstance = KaleoInstanceLocalServiceUtil.getKaleoInstance(kaleoInstanceToken.getKaleoInstanceId());
+CPDefinition product = CPDefinitionLocalServiceUtil.getCPDefinition(kaleoInstance.getClassPK());
+String commerceCatalogName = product.getCommerceCatalog().getName();
+
+if(commerceCatalogName.equalsIgnoreCase("vmo2")){
+	System.out.println("This product is in main catalog, proceed to auto-approve");
+	returnValue = "auto-approve";
+	
+}else{
+	System.out.println("This product is in Marketplace catalog, check the category");
+	returnValue = "check-category";
+}]]>
+				</script>
+				<script-language>groovy</script-language>
+				<priority>1</priority>
+				<execution-type>onEntry</execution-type>
+			</action>
+		</actions>
+		<labels>
+			<label language-id="en_US">
+				Check Catalog
+			</label>
+		</labels>
+		<transitions>
+			<transition>
+				<labels>
+					<label language-id="en_US">
+						check-category
+					</label>
+				</labels>
+				<id>check-category</id>
+				<target>review</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<labels>
+					<label language-id="en_US">
+						auto-approve
+					</label>
+				</labels>
+				<id>auto-approve</id>
+				<target>approved</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</state>
+	<task>
+		<id>update</id>
+		<description>Ask a user to work on the item.</description>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						164,
+						533
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>reject</name>
+				<description></description>
+				<script>
+					<![CDATA[
+						import com.liferay.portal.kernel.workflow.WorkflowConstants;
+						import com.liferay.portal.kernel.workflow.WorkflowStatusManagerUtil;
+
+						WorkflowStatusManagerUtil.updateStatus(WorkflowConstants.getLabelStatus("denied"), workflowContext);
+						WorkflowStatusManagerUtil.updateStatus(WorkflowConstants.getLabelStatus("pending"), workflowContext);
+					]]>
+				</script>
+				<script-language>groovy</script-language>
+				<priority>1</priority>
+				<execution-type>onAssignment</execution-type>
+			</action>
+			<notification>
+				<name>Creator Modification Notification</name>
+				<template>
+					<![CDATA[Your submission was rejected by ${userName}, please modify and resubmit.]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>email</notification-type>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<user />
+				</recipients>
+				<execution-type>onAssignment</execution-type>
+			</notification>
+		</actions>
+		<assignments>
+			<user />
+		</assignments>
+		<labels>
+			<label language-id="en_US">
+				update
+			</label>
+		</labels>
+		<transitions>
+			<transition>
+				<labels>
+					<label language-id="en_US">
+						resubmit
+					</label>
+				</labels>
+				<id>resubmit</id>
+				<target>review</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</task>
+	<task>
+		<id>review</id>
+		<description>Ask a user to work on the item.</description>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						164,
+						293
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<notification>
+				<name>Review Notification</name>
+				<template>
+					<![CDATA[${userName} sent you a ${entryType} for review in the workflow.]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>email</notification-type>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<assignees />
+				</recipients>
+				<execution-type>onAssignment</execution-type>
+			</notification>
+			<notification>
+				<name>Review Completion Notification</name>
+				<template>
+					<![CDATA[Your submission was reviewed<#if taskComments?has_content> and the reviewer applied the following ${taskComments}</#if>.]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>email</notification-type>
+				<recipients receptionType="to">
+					<user />
+				</recipients>
+				<execution-type>onExit</execution-type>
+			</notification>
+		</actions>
+		<assignments>
+			<roles>
+				<role>
+					<role-type>account</role-type>
+					<name>Account Administrator</name>
+					<auto-create>false</auto-create>
+				</role>
+				<role>
+					<role-type>regular</role-type>
+					<name>Marketplace Manager</name>
+				</role>
+			</roles>
+		</assignments>
+		<labels>
+			<label language-id="en_US">
+				review
+			</label>
+		</labels>
+		<transitions>
+			<transition>
+				<labels>
+					<label language-id="en_US">
+						approve
+					</label>
+				</labels>
+				<id>approve</id>
+				<target>approved</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<labels>
+					<label language-id="en_US">
+						reject
+					</label>
+				</labels>
+				<id>reject</id>
+				<target>update</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</task>
+</workflow-definition>

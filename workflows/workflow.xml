@@ -1,0 +1,1448 @@
+<?xml version="1.0"?>
+
+<workflow-definition
+	xmlns="urn:liferay.com:liferay-workflow_7.1.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="urn:liferay.com:liferay-workflow_7.1.0 http://www.liferay.com/dtd/liferay-workflow-definition_7_1_0.xsd"
+>
+	<name>wlt_commerce_seller_order_acceptence_workflow_3.5.0</name>
+	<description>A single approver can approve a workflow content.</description>
+	<version>1</version>
+	<condition>
+		<name>requireApproval</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						13.5548095703125,
+						106.26376342773438
+					],
+					"transitions": {
+						"passthrough": {
+							"bendpoints": []
+						}
+					}
+				}
+			]]>
+		</metadata>
+		<script>
+			<![CDATA[com.liferay.wlt.order.check.condition.evaluator.OrderItemCheckConditionEvaluator]]>
+		</script>
+		<script-language>java</script-language>
+		<transitions>
+			<transition>
+				<name>review</name>
+				<target>review</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>passthrough</name>
+				<target>CheckPrice</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<condition>
+		<name>CheckPrice</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						128.33419799804688,
+						248.1592559814453
+					],
+					"transitions": {
+						"under": {
+							"bendpoints": []
+						}
+					}
+				}
+			]]>
+		</metadata>
+		<script>
+			<![CDATA[import com.liferay.portal.workflow.kaleo.model.*;
+import com.liferay.portal.workflow.kaleo.service.*;
+import com.liferay.commerce.model.CommerceOrder;
+import com.liferay.commerce.service.CommerceOrderLocalServiceUtil;
+KaleoInstance kaleoInstance = KaleoInstanceLocalServiceUtil.getKaleoInstance(kaleoInstanceToken.getKaleoInstanceId());
+CommerceOrder order = CommerceOrderLocalServiceUtil.getCommerceOrder(kaleoInstance.getClassPK());
+if(order.getSubtotal().intValue() >= 500){
+    returnValue = "over";
+} else {
+    returnValue = "under";
+}]]>
+		</script>
+		<script-language>groovy</script-language>
+		<transitions>
+			<transition>
+				<name>over</name>
+				<target>review</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>under</name>
+				<target>checkJitterbit</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<condition>
+		<name>Create Files</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						734.9789733886719,
+						467.8417282104492
+					],
+					"transitions": {
+						"XML File Created": {
+							"bendpoints": []
+						}
+					}
+				}
+			]]>
+		</metadata>
+		<script>
+			<![CDATA[com.liferay.wlt.xml.generator.condition.evaluator.XMLGeneratorConditionEvaluator]]>
+		</script>
+		<script-language>java</script-language>
+		<transitions>
+			<transition>
+				<name>XML Failure</name>
+				<target>File Failure</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>XML File Created</name>
+				<target>approved</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<condition>
+		<name>checkJitterbit</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						656.9446716308594,
+						273.9797248840332
+					],
+					"transitions": {
+						"notJitterbit": {
+							"bendpoints": []
+						}
+					}
+				}
+			]]>
+		</metadata>
+		<script>
+			<![CDATA[com.liferay.wlt.jitterbit.integration.CommerceOrderJitterbitIntegrationConditionEvaluator]]>
+		</script>
+		<script-language>java</script-language>
+		<transitions>
+			<transition>
+				<name>isJitterbit</name>
+				<target>jitterbitApproval</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>notJitterbit</name>
+				<target>Check for Immedia</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<condition>
+		<name>Check for Immedia</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						224.01199340820312,
+						503.66231536865234
+					],
+					"transitions": {
+						"Normal Order": {
+							"bendpoints": []
+						}
+					}
+				}
+			]]>
+		</metadata>
+		<script>
+			<![CDATA[com.liferay.wlt.immedia.condition.evaluator.WltImmediaConditionEvaluator]]>
+		</script>
+		<script-language>java</script-language>
+		<transitions>
+			<transition>
+				<name>Immedia Order</name>
+				<target>Awaiting Immedia</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Normal Order</name>
+				<target>Check for Diconnect</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<condition>
+		<name>Check for Diconnect</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						380.0416564941406,
+						539.1313095092773
+					],
+					"transitions": {
+						"Normal Order": {
+							"bendpoints": []
+						}
+					}
+				}
+			]]>
+		</metadata>
+		<script>
+			<![CDATA[com.liferay.wlt.diconnect.condition.evaluator.WltDiconnectConditionEvaluator]]>
+		</script>
+		<script-language>java</script-language>
+		<transitions>
+			<transition>
+				<name>Diconnect Order</name>
+				<target>Awaiting Diconnect</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Normal Order</name>
+				<target>Create Files</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<condition>
+		<name>Multiship action</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						375,
+						114
+					]
+				}
+			]]>
+		</metadata>
+		<script>
+			<![CDATA[com.liferay.wlt.shipping.multi.address.workflow.condition.evaluator.MultishipConditionEvaluator]]>
+		</script>
+		<script-language>java</script-language>
+		<transitions>
+			<transition>
+				<name>error</name>
+				<target>Rejected by Multiship Action</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>success</name>
+				<target>Is the user exempt?</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<condition>
+		<name>Is the user exempt?</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						393,
+						197
+					]
+				}
+			]]>
+		</metadata>
+		<script>
+			<![CDATA[com.liferay.wlt.approval.workflow.condition.evaluator.ApprovalWorkflowExemptUserConditionEvaluator]]>
+		</script>
+		<script-language>java</script-language>
+		<transitions>
+			<transition>
+				<name>User is not exempt</name>
+				<target>Check is Tier Approval?</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>User is exempt</name>
+				<target>checkJitterbit</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<condition>
+		<name>Check is Tier Approval?</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						244,
+						170
+					]
+				}
+			]]>
+		</metadata>
+		<script>
+			<![CDATA[com.liferay.wlt.order.tier.approval.organisation.check.TierApprovalOrganisationCheck]]>
+		</script>
+		<script-language>java</script-language>
+		<transitions>
+			<transition>
+				<name>isNotTierApproval</name>
+				<target>requireApproval</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>isTierApproval</name>
+				<target>Check if the user has Tier 1 role</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<condition>
+		<name>Check if the user has Tier 1 role</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						312.8862609863281,
+						452.04735565185547
+					]
+				}
+			]]>
+		</metadata>
+		<script>
+			<![CDATA[com.liferay.wlt.order.tier.approval.role.check.TierApprovalRoleOneCheck]]>
+		</script>
+		<script-language>java</script-language>
+		<transitions>
+			<transition>
+				<name>Has tier 1, 2 or 3 role</name>
+				<target>Check if the user has Tier 2 role</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Does not have tier 1 role</name>
+				<target>Check order total Tier 1</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<condition>
+		<name>Check if the user has Tier 2 role</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						794.1720886230469,
+						337.76924896240234
+					]
+				}
+			]]>
+		</metadata>
+		<script>
+			<![CDATA[com.liferay.wlt.order.tier.approval.role.check.TierApprovalRoleTwoCheck]]>
+		</script>
+		<script-language>java</script-language>
+		<transitions>
+			<transition>
+				<name>Has tier 2 or 3 role</name>
+				<target>Check if the user has Tier 3 role</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Does not have tier 2 role</name>
+				<target>Check order total Tier 2</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<condition>
+		<name>Check if the user has Tier 3 role</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						337.0205383300781,
+						470.73241424560547
+					]
+				}
+			]]>
+		</metadata>
+		<script>
+			<![CDATA[com.liferay.wlt.order.tier.approval.role.check.TierApprovalRoleThreeCheck]]>
+		</script>
+		<script-language>java</script-language>
+		<transitions>
+			<transition>
+				<name>Does not have tier 3 role</name>
+				<target>Check order total Tier 3</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Has tier 3 role</name>
+				<target>checkJitterbit</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<condition>
+		<name>Check order total Tier 1</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						32,
+						516
+					]
+				}
+			]]>
+		</metadata>
+		<script>
+			<![CDATA[import com.liferay.portal.workflow.kaleo.model.*;
+import com.liferay.portal.workflow.kaleo.service.*;
+import com.liferay.commerce.model.CommerceOrder;
+import com.liferay.commerce.service.CommerceOrderLocalServiceUtil;
+
+KaleoInstance kaleoInstance = KaleoInstanceLocalServiceUtil.getKaleoInstance(kaleoInstanceToken.getKaleoInstanceId());
+
+CommerceOrder order = CommerceOrderLocalServiceUtil.getCommerceOrder(kaleoInstance.getClassPK());
+
+boolean doesOrderRequireApproval = false;
+if(order.getExpandoBridge().getAttribute("order-require-approval") != null){
+ doesOrderRequireApproval = (boolean) order.getExpandoBridge().getAttribute("order-require-approval");
+}
+
+if(order.getSubtotal().intValue() >= 100 || doesOrderRequireApproval){
+    returnValue = "Has tier 1 price";
+} else {
+    returnValue = "Does not have tier 1 price";
+}]]>
+		</script>
+		<script-language>groovy</script-language>
+		<transitions>
+			<transition>
+				<name>Does not have tier 1 price</name>
+				<target>Check if the user has Tier 2 role</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Has tier 1 price</name>
+				<target>Tier 1 Approval</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<condition>
+		<name>Check order total Tier 2</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						554.1705017089844,
+						376.49346923828125
+					]
+				}
+			]]>
+		</metadata>
+		<script>
+			<![CDATA[import com.liferay.portal.workflow.kaleo.model.*;
+import com.liferay.portal.workflow.kaleo.service.*;
+import com.liferay.commerce.model.CommerceOrder;
+import com.liferay.commerce.service.CommerceOrderLocalServiceUtil;
+
+KaleoInstance kaleoInstance = KaleoInstanceLocalServiceUtil.getKaleoInstance(kaleoInstanceToken.getKaleoInstanceId());
+
+CommerceOrder order = CommerceOrderLocalServiceUtil.getCommerceOrder(kaleoInstance.getClassPK());
+
+if(order.getSubtotal().intValue() >= 500){
+    returnValue = "Has tier 2 price";
+} else {
+    returnValue = "Does not have tier 2 price";
+}]]>
+		</script>
+		<script-language>groovy</script-language>
+		<transitions>
+			<transition>
+				<name>Does not have tier 2 price</name>
+				<target>Check if the user has Tier 3 role</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Has tier 2 price</name>
+				<target>Tier 2 Approval</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<condition>
+		<name>Check order total Tier 3</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						784.0483093261719,
+						492.62056732177734
+					]
+				}
+			]]>
+		</metadata>
+		<script>
+			<![CDATA[import com.liferay.portal.workflow.kaleo.model.*;
+import com.liferay.portal.workflow.kaleo.service.*;
+import com.liferay.commerce.model.CommerceOrder;
+import com.liferay.commerce.service.CommerceOrderLocalServiceUtil;
+
+KaleoInstance kaleoInstance = KaleoInstanceLocalServiceUtil.getKaleoInstance(kaleoInstanceToken.getKaleoInstanceId());
+
+CommerceOrder order = CommerceOrderLocalServiceUtil.getCommerceOrder(kaleoInstance.getClassPK());
+
+if(order.getSubtotal().intValue() >= 1000){
+    returnValue = "Has tier 3 price";
+} else {
+    returnValue = "Does not have tier 3 price";
+}]]>
+		</script>
+		<script-language>groovy</script-language>
+		<transitions>
+			<transition>
+				<name>Does not have tier 3 price</name>
+				<target>checkJitterbit</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Has tier 3 price</name>
+				<target>Tier 3 Approval</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<condition>
+		<name>Check is specific approval?</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						277,
+						0
+					]
+				}
+			]]>
+		</metadata>
+		<script>
+			<![CDATA[com.liferay.wlt.approval.workflow.condition.evaluator.WltSpecificApprovalConditionEvaluator]]>
+		</script>
+		<script-language>java</script-language>
+		<transitions>
+			<transition>
+				<name>waiting for specific approval</name>
+				<target>Specific Approval</target>
+				<default>false</default>
+			</transition>
+			<transition>
+				<name>evaluate next step</name>
+				<target>Multiship action</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</condition>
+	<state>
+		<name>created</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						69,
+						9
+					],
+					"transitions": {
+						"evaluate": {
+							"bendpoints": []
+						}
+					}
+				}
+			]]>
+		</metadata>
+		<initial>true</initial>
+		<transitions>
+			<transition>
+				<name>evaluate order</name>
+				<target>Check is specific approval?</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<state>
+		<name>approved</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						477.0149841308594,
+						545.6873397827148
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>approve</name>
+				<script>
+					<![CDATA[import com.liferay.portal.kernel.workflow.WorkflowStatusManagerUtil;
+						import com.liferay.portal.kernel.workflow.WorkflowConstants;
+						WorkflowStatusManagerUtil.updateStatus(WorkflowConstants.getLabelStatus("approved"), workflowContext);]]>
+				</script>
+				<script-language>groovy</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+			<notification>
+				<name>Order Approved</name>
+				<description>
+					<![CDATA[]]>
+				</description>
+				<template>
+					<![CDATA[Order Approved]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<user />
+				</recipients>
+				<execution-type>onEntry</execution-type>
+			</notification>
+		</actions>
+	</state>
+	<state>
+		<name>Order Rejected</name>
+		<metadata>
+			<![CDATA[
+				{
+					"terminal": true,
+					"xy": [
+						214.07046508789062,
+						494.07238006591797
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>Tiered rejection - cancel order</name>
+				<description>cancel order</description>
+				<script>
+					<![CDATA[import com.liferay.wlt.approval.workflow.assignment.util.WorkflowAssignmentServiceUtil;
+				WorkflowAssignmentServiceUtil.cancelOrder(workflowContext);]]>
+				</script>
+				<script-language>groovy</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+			<notification>
+				<name>Order Rejected</name>
+				<description>
+					<![CDATA[Order Rejected]]>
+				</description>
+				<template>
+					<![CDATA[Order Rejected]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<user />
+				</recipients>
+				<execution-type>onEntry</execution-type>
+			</notification>
+		</actions>
+	</state>
+	<state>
+		<name>denied</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						490.9604187011719,
+						352.3982467651367
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>deny</name>
+				<script>
+					<![CDATA[import com.liferay.portal.kernel.workflow.WorkflowStatusManagerUtil;
+						import com.liferay.portal.kernel.workflow.WorkflowConstants;
+						WorkflowStatusManagerUtil.updateStatus(WorkflowConstants.getLabelStatus("denied"), workflowContext);]]>
+				</script>
+				<script-language>groovy</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+		</actions>
+	</state>
+	<state>
+		<name>Rejected by Tiered workflow</name>
+		<metadata>
+			<![CDATA[
+				{
+					"terminal": true,
+					"xy": [
+						799,
+						146
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>Tiered rejection - cancel order</name>
+				<description>cancel order</description>
+				<script>
+					<![CDATA[import com.liferay.wlt.approval.workflow.assignment.util.WorkflowAssignmentServiceUtil;
+				WorkflowAssignmentServiceUtil.cancelOrder(workflowContext);]]>
+				</script>
+				<script-language>groovy</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+			<notification>
+				<name>Order Rejected</name>
+				<description>
+					<![CDATA[Order Rejected]]>
+				</description>
+				<template>
+					<![CDATA[Order Rejected]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<user />
+				</recipients>
+				<execution-type>onEntry</execution-type>
+			</notification>
+		</actions>
+	</state>
+	<state>
+		<name>Rejected by Multiship Action</name>
+		<metadata>
+			<![CDATA[
+				{
+					"terminal": true,
+					"xy": [
+						679.9526062011719,
+						90.98370361328125
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>Tiered rejection - cancel order</name>
+				<description>cancel order</description>
+				<script>
+					<![CDATA[import com.liferay.wlt.approval.workflow.assignment.util.WorkflowAssignmentServiceUtil;
+				WorkflowAssignmentServiceUtil.cancelOrder(workflowContext);]]>
+				</script>
+				<script-language>groovy</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+			<notification>
+				<name>Order Rejected</name>
+				<description>
+					<![CDATA[Order was rejected]]>
+				</description>
+				<template>
+					<![CDATA[
+
+					<p>Your order was rejected. </p>
+					<p>Please make a new order or contact your administrator for more information. </p>
+				
+					
+					
+					
+					]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>email</notification-type>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<user />
+				</recipients>
+				<execution-type>onEntry</execution-type>
+			</notification>
+		</actions>
+	</state>
+	<state>
+		<name>Rejected by Specific Approver</name>
+		<metadata>
+			<![CDATA[
+				{
+					"terminal": true,
+					"xy": [
+						793,
+						18
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>Specific Approver rejection - cancel order</name>
+				<description>cancel order</description>
+				<script>
+					<![CDATA[import com.liferay.wlt.approval.workflow.assignment.util.WorkflowAssignmentServiceUtil;
+				WorkflowAssignmentServiceUtil.cancelOrder(workflowContext);]]>
+				</script>
+				<script-language>groovy</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+			<notification>
+				<name>Order Rejected</name>
+				<description>
+					<![CDATA[Order was Rejected]]>
+				</description>
+				<template>
+					<![CDATA[					<p>Your order was rejected. </p>
+					<p>Please make a new order or contact your administrator for more information. </p>]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>email</notification-type>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<user />
+				</recipients>
+				<execution-type>onEntry</execution-type>
+			</notification>
+		</actions>
+	</state>
+	<task>
+		<name>review</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						24,
+						358
+					],
+					"transitions": {
+						"Approve Order": {
+							"bendpoints": []
+						}
+					}
+				}
+			]]>
+		</metadata>
+		<actions>
+			<notification>
+				<name>Review Notification</name>
+				<description>
+					<![CDATA[]]>
+				</description>
+				<template>
+					<![CDATA[${userName} sent you a ${entryType} for review in the workflow.]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>email</notification-type>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<roles>
+						<role>
+							<role-type>site</role-type>
+							<name>Order Manager</name>
+							<auto-create>false</auto-create>
+						</role>
+						<role>
+							<role-type>site</role-type>
+							<name>Account Administrator</name>
+							<auto-create>false</auto-create>
+						</role>
+					</roles>
+				</recipients>
+				<execution-type>onAssignment</execution-type>
+			</notification>
+			<notification>
+				<name>Review Completion Notification</name>
+				<description>
+					<![CDATA[]]>
+				</description>
+				<template>
+					<![CDATA[Your submission was reviewed
+					<#if taskComments?has_content> and the reviewer applied the following ${taskComments}</#if>.]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>email</notification-type>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<user />
+				</recipients>
+				<execution-type>onExit</execution-type>
+			</notification>
+		</actions>
+		<assignments>
+			<scripted-assignment>
+				<script>
+					<![CDATA[
+
+					import com.liferay.wlt.approval.workflow.assignment.util.WorkflowAssignmentServiceUtil;
+					import com.liferay.wlt.approval.workflow.assignment.model.WorkflowAssignmentModel;
+
+					WorkflowAssignmentModel workflowAssignmentModel = WorkflowAssignmentServiceUtil.buildAssignmentModel(workflowContext, "Order Manager", "Account Administrator");
+
+					if (workflowAssignmentModel.isUserApprover()) {
+						user = workflowAssignmentModel.getUser();
+						roles = null;
+					}else{
+						roles = workflowAssignmentModel.getRoles();
+						user = null;
+					}
+					
+					]]>
+				</script>
+				<script-language>groovy</script-language>
+			</scripted-assignment>
+		</assignments>
+		<transitions>
+			<transition>
+				<name>reject</name>
+				<target>Order Rejected</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Approve Order</name>
+				<target>checkJitterbit</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</task>
+	<task>
+		<name>jitterbitApproval</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						726.0075378417969,
+						481.68297576904297
+					],
+					"transitions": {
+						"jitterbitApprove": {
+							"bendpoints": []
+						}
+					}
+				}
+			]]>
+		</metadata>
+		<assignments>
+			<scripted-assignment>
+				<script>
+					<![CDATA[
+
+					import com.liferay.wlt.approval.workflow.assignment.util.WorkflowAssignmentServiceUtil;
+					import com.liferay.wlt.approval.workflow.assignment.model.WorkflowAssignmentModel;
+
+					WorkflowAssignmentModel workflowAssignmentModel = WorkflowAssignmentServiceUtil.buildAssignmentModel(workflowContext, "Jitterbit");
+
+					if (workflowAssignmentModel.isUserApprover()) {
+						user = workflowAssignmentModel.getUser();
+						roles = null;
+					}else{
+						roles = workflowAssignmentModel.getRoles();
+						user = null;
+					}					
+
+					]]>
+				</script>
+				<script-language>groovy</script-language>
+			</scripted-assignment>
+		</assignments>
+		<transitions>
+			<transition>
+				<name>jitterbitReject</name>
+				<target>denied</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>jitterbitApprove</name>
+				<target>Check for Immedia</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</task>
+	<task>
+		<name>File Failure</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						444.9900207519531,
+						472.8873519897461
+					],
+					"transitions": {
+						"Approve without Files": {
+							"bendpoints": []
+						}
+					}
+				}
+			]]>
+		</metadata>
+		<actions>
+			<notification>
+				<name>Error creating order files</name>
+				<description>
+					<![CDATA[Error creating order files]]>
+				</description>
+				<template>
+					<![CDATA[Error creating order files]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<assignees />
+				</recipients>
+				<execution-type>onAssignment</execution-type>
+			</notification>
+		</actions>
+		<assignments>
+			<scripted-assignment>
+				<script>
+					<![CDATA[
+
+					import com.liferay.wlt.approval.workflow.assignment.util.WorkflowAssignmentServiceUtil;
+					import com.liferay.wlt.approval.workflow.assignment.model.WorkflowAssignmentModel;
+
+					WorkflowAssignmentModel workflowAssignmentModel = WorkflowAssignmentServiceUtil.buildAssignmentModel(workflowContext, "Administrator");
+
+					if (workflowAssignmentModel.isUserApprover()) {
+						user = workflowAssignmentModel.getUser();
+						roles = null;
+					}else{
+						roles = workflowAssignmentModel.getRoles();
+						user = null;
+					}					
+
+					]]>
+				</script>
+				<script-language>groovy</script-language>
+			</scripted-assignment>
+		</assignments>
+		<transitions>
+			<transition>
+				<name>Retry</name>
+				<target>Create Files</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Approve without Files</name>
+				<target>approved</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</task>
+	<task>
+		<name>Awaiting Immedia</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						200.98446655273438,
+						507.0868148803711
+					],
+					"transitions": {
+						"Sent to Immedia": {
+							"bendpoints": []
+						}
+					}
+				}
+			]]>
+		</metadata>
+		<assignments>
+			<user />
+		</assignments>
+		<transitions>
+			<transition>
+				<name>Sent to Immedia</name>
+				<target>Create Files</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</task>
+	<task>
+		<name>Awaiting Diconnect</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						302.9968566894531,
+						409.41036224365234
+					],
+					"transitions": {
+						"Sent to Diconnect": {
+							"bendpoints": []
+						}
+					}
+				}
+			]]>
+		</metadata>
+		<assignments>
+			<user />
+		</assignments>
+		<transitions>
+			<transition>
+				<name>Sent to Diconnect</name>
+				<target>Create Files</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</task>
+	<task>
+		<name>Tier 1 Approval</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						217,
+						320
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<notification>
+				<name>Order requires Tier 1 Approval Notification</name>
+				<description>
+					<![CDATA[Order requires Tier 1 Approval]]>
+				</description>
+				<template>
+					<![CDATA[Order requires Tier 1 Approval]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<assignees />
+				</recipients>
+				<execution-type>onAssignment</execution-type>
+			</notification>
+			<notification>
+				<name>Order requires Tier 1 Approval Email</name>
+				<description>
+					<![CDATA[Order requires Tier 1 Approval]]>
+				</description>
+				<template>
+					<![CDATA[
+
+					<#if serviceLocator??>
+						<#assign workflowAssignmentService = serviceLocator.findService("com.liferay.wlt.approval.workflow.assignment.service.WorkflowAssignmentService")/>
+					</#if>
+					<#assign portalURL = workflowAssignmentService.orderRequiresTierApprovalEmailUrl(companyId?number, groupId?number, kaleoTaskInstanceToken) />
+				
+					<p>An order requires Tier 1 Approval. </p>
+					<p> <a href="${portalURL}">Click here</a> to view.</p>
+					
+					]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>email</notification-type>
+				<recipients receptionType="to">
+					<assignees />
+				</recipients>
+				<execution-type>onAssignment</execution-type>
+			</notification>
+		</actions>
+		<assignments>
+			<scripted-assignment>
+				<script>
+					<![CDATA[
+
+					import com.liferay.wlt.approval.workflow.assignment.util.WorkflowAssignmentServiceUtil;
+					import com.liferay.wlt.approval.workflow.assignment.model.WorkflowAssignmentModel;
+
+					WorkflowAssignmentModel workflowAssignmentModel = WorkflowAssignmentServiceUtil.buildAssignmentModel(workflowContext, "Approver Tier 1");
+
+					if (workflowAssignmentModel.isUserApprover()) {
+						user = workflowAssignmentModel.getUser();
+						roles = null;
+					}else{
+						roles = workflowAssignmentModel.getRoles();
+						user = null;
+					}
+					
+					]]>
+				</script>
+				<script-language>groovy</script-language>
+			</scripted-assignment>
+		</assignments>
+		<transitions>
+			<transition>
+				<name>Approve Tier 1</name>
+				<target>Check if the user has Tier 2 role</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Reject Order Tier 1</name>
+				<target>Rejected by Tiered workflow</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</task>
+	<task>
+		<name>Tier 2 Approval</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						764.9270935058594,
+						370.0936813354492
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<notification>
+				<name>Order requires Tier 2 Approval Notification</name>
+				<description>
+					<![CDATA[Order requires Tier 2 Approval]]>
+				</description>
+				<template>
+					<![CDATA[Order requires Tier 2 Approval]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<assignees />
+				</recipients>
+				<execution-type>onAssignment</execution-type>
+			</notification>
+			<notification>
+				<name>Order requires Tier 2 Approval Email</name>
+				<description>
+					<![CDATA[Order requires Tier 2 Approval]]>
+				</description>
+				<template>
+					<![CDATA[
+
+					<#if serviceLocator??>
+						<#assign workflowAssignmentService = serviceLocator.findService("com.liferay.wlt.approval.workflow.assignment.service.WorkflowAssignmentService")/>
+					</#if>
+					<#assign portalURL = workflowAssignmentService.orderRequiresTierApprovalEmailUrl(companyId?number, groupId?number, kaleoTaskInstanceToken) />
+				
+					<p>An order requires Tier 2 Approval. </p>
+					<p> <a href="${portalURL}">Click here</a> to view.</p>
+					
+					]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>email</notification-type>
+				<recipients receptionType="to">
+					<assignees />
+				</recipients>
+				<execution-type>onAssignment</execution-type>
+			</notification>
+		</actions>
+		<assignments>
+			<scripted-assignment>
+				<script>
+					<![CDATA[
+
+					import com.liferay.wlt.approval.workflow.assignment.util.WorkflowAssignmentServiceUtil;
+					import com.liferay.wlt.approval.workflow.assignment.model.WorkflowAssignmentModel;
+
+					WorkflowAssignmentModel workflowAssignmentModel = WorkflowAssignmentServiceUtil.buildAssignmentModel(workflowContext, "Approver Tier 2");
+
+					if (workflowAssignmentModel.isUserApprover()) {
+						user = workflowAssignmentModel.getUser();
+						roles = null;
+					}else{
+						roles = workflowAssignmentModel.getRoles();
+						user = null;
+					}
+
+					]]>
+				</script>
+				<script-language>groovy</script-language>
+			</scripted-assignment>
+		</assignments>
+		<transitions>
+			<transition>
+				<name>Approve Tier 2</name>
+				<target>Check if the user has Tier 3 role</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Reject Order Tier 2</name>
+				<target>Rejected by Tiered workflow</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</task>
+	<task>
+		<name>Tier 3 Approval</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						663.9889831542969,
+						520.4853439331055
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<notification>
+				<name>Order requires Tier 3 Approval Notification</name>
+				<description>
+					<![CDATA[Order requires Tier 3 Approval]]>
+				</description>
+				<template>
+					<![CDATA[Order requires Tier 3 Approval]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<assignees />
+				</recipients>
+				<execution-type>onAssignment</execution-type>
+			</notification>
+			<notification>
+				<name>Order requires Tier 3 Approval Email</name>
+				<description>
+					<![CDATA[Order requires Tier 3 Approval]]>
+				</description>
+				<template>
+					<![CDATA[
+
+					<#if serviceLocator??>
+						<#assign workflowAssignmentService = serviceLocator.findService("com.liferay.wlt.approval.workflow.assignment.service.WorkflowAssignmentService")/>
+					</#if>
+					<#assign portalURL = workflowAssignmentService.orderRequiresTierApprovalEmailUrl(companyId?number, groupId?number, kaleoTaskInstanceToken) />
+				
+					<p>An order requires Tier 3 Approval. </p>
+					<p> <a href="${portalURL}">Click here</a> to view.</p>
+					
+					]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>email</notification-type>
+				<recipients receptionType="to">
+					<assignees />
+				</recipients>
+				<execution-type>onAssignment</execution-type>
+			</notification>
+		</actions>
+		<assignments>
+			<scripted-assignment>
+				<script>
+					<![CDATA[
+
+					import com.liferay.wlt.approval.workflow.assignment.util.WorkflowAssignmentServiceUtil;
+					import com.liferay.wlt.approval.workflow.assignment.model.WorkflowAssignmentModel;
+
+					WorkflowAssignmentModel workflowAssignmentModel = WorkflowAssignmentServiceUtil.buildAssignmentModel(workflowContext, "Approver Tier 3");
+
+					if (workflowAssignmentModel.isUserApprover()) {
+						user = workflowAssignmentModel.getUser();
+						roles = null;
+					}else{
+						roles = workflowAssignmentModel.getRoles();
+						user = null;
+					}
+
+					]]>
+				</script>
+				<script-language>groovy</script-language>
+			</scripted-assignment>
+		</assignments>
+		<transitions>
+			<transition>
+				<name>Approve Tier 3</name>
+				<target>checkJitterbit</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Reject Order Tier 3</name>
+				<target>Rejected by Tiered workflow</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</task>
+	<task>
+		<name>Specific Approval</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						554,
+						4
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<notification>
+				<name>Order requires Specific Approval Notification</name>
+				<description>
+					<![CDATA[Order requires Specific Approval]]>
+				</description>
+				<template>
+					<![CDATA[${kaleoTaskInstanceToken}
+Order requires Specific Approval]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<assignees />
+				</recipients>
+				<execution-type>onAssignment</execution-type>
+			</notification>
+		</actions>
+		<assignments>
+			<scripted-assignment>
+				<script>
+					<![CDATA[import com.liferay.portal.workflow.kaleo.model.*;
+import com.liferay.portal.workflow.kaleo.service.*;
+import com.liferay.commerce.model.CommerceOrder;
+import com.liferay.commerce.model.CommerceOrderItem;
+import com.liferay.commerce.service.CommerceOrderLocalServiceUtil;
+import com.liferay.expando.kernel.model.ExpandoBridge;
+import com.liferay.wlt.specific.approval.service.WltSpecificApprovalOrderItemLocalServiceUtil;
+
+import java.util.List;
+
+KaleoInstance kaleoInstance = KaleoInstanceLocalServiceUtil.getKaleoInstance(kaleoInstanceToken.getKaleoInstanceId());
+
+CommerceOrder order = CommerceOrderLocalServiceUtil.getCommerceOrder(kaleoInstance.getClassPK());
+
+List<CommerceOrderItem> commerceOrderItems = order.getCommerceOrderItems();
+
+for (CommerceOrderItem commerceOrderItem : commerceOrderItems) {
+			
+            ExpandoBridge expandoBridge = commerceOrderItem.getCPDefinition().getExpandoBridge();
+
+			if (expandoBridge.hasAttribute("specific_approver")) {
+
+				specificApprover = expandoBridge.getAttribute("specific_approver");
+
+WltSpecificApprovalOrderItemLocalServiceUtil.addWltSpecificApprovalOrderItem(order.getGroupId(), order.getCommerceOrderId(),
+							commerceOrderItem.getCommerceOrderItemId(), commerceOrderItem.getCPDefinitionId(),  (int) specificApprover, workflowContext);
+user=null;
+roles=null;
+            }
+}]]>
+				</script>
+				<script-language>groovy</script-language>
+			</scripted-assignment>
+		</assignments>
+		<transitions>
+			<transition>
+				<name>Reject Order Specific Approver</name>
+				<target>Rejected by Specific Approver</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</task>
+</workflow-definition>

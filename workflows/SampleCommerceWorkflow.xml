@@ -1,0 +1,195 @@
+<?xml version="1.0"?>
+<workflow-definition
+	xmlns="urn:liferay.com:liferay-workflow_7.1.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:liferay.com:liferay-workflow_7.1.0 http://www.liferay.com/dtd/liferay-workflow-definition_7_1_0.xsd">
+	<name>Commerce Order Example</name>
+	<description>A single approver can approve a workflow content.</description>
+	<version>1</version>
+	<condition>
+		<name>CheckPrice</name>
+		<metadata>
+			<![CDATA[{"xy":[0,201],"transitions":{"under":{"bendpoints":[]}}}]]>
+		</metadata>
+		<script>
+			<![CDATA[import com.liferay.portal.workflow.kaleo.model.*;
+import com.liferay.portal.workflow.kaleo.service.*;
+import com.liferay.commerce.model.CommerceOrder;
+import com.liferay.commerce.service.CommerceOrderLocalServiceUtil;
+KaleoInstance kaleoInstance = KaleoInstanceLocalServiceUtil.getKaleoInstance(kaleoInstanceToken.getKaleoInstanceId());
+CommerceOrder order = CommerceOrderLocalServiceUtil.getCommerceOrder(kaleoInstance.getClassPK());
+if(order.getSubtotal().intValue() >= 500){
+    returnValue = "over";
+} else {
+    returnValue = "under";
+}]]>
+		</script>
+		<script-language>groovy</script-language>
+		<transitions>
+			<transition>
+				<name>over</name>
+				<target>review</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>under</name>
+				<target>approved</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<state>
+		<name>created</name>
+		<metadata>
+			<![CDATA[{"xy":[21,27],"transitions":{"evaluate":{"bendpoints":[]}}}]]>
+		</metadata>
+		<initial>true</initial>
+		<transitions>
+			<transition>
+				<name>Evaluate</name>
+				<target>CheckPrice</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<state>
+		<name>approved</name>
+		<metadata>
+			<![CDATA[{"xy":[325,240]}]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>approve</name>
+				<script>
+					<![CDATA[import com.liferay.portal.kernel.workflow.WorkflowStatusManagerUtil;
+						import com.liferay.portal.kernel.workflow.WorkflowConstants;
+						WorkflowStatusManagerUtil.updateStatus(WorkflowConstants.getLabelStatus("approved"), workflowContext);]]>
+				</script>
+				<script-language>groovy</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+			<notification>
+				<name>Order Approved</name>
+				<description>
+					<![CDATA[]]>
+				</description>
+				<template>
+					<![CDATA[Order Approved]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<user/>
+				</recipients>
+				<execution-type>onEntry</execution-type>
+			</notification>
+		</actions>
+	</state>
+	<state>
+		<name>Order Rejected</name>
+		<metadata>
+			<![CDATA[{"terminal":true,"xy":[826,0]}]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>rejection</name>
+				<description>rejection</description>
+				<script>
+					<![CDATA[import com.liferay.portal.kernel.workflow.WorkflowStatusManagerUtil;
+						import com.liferay.portal.kernel.workflow.WorkflowConstants;
+						WorkflowStatusManagerUtil.updateStatus(WorkflowConstants.getLabelStatus("denied"), workflowContext);]]>
+				</script>
+				<script-language>groovy</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+			<notification>
+				<name>Order Rejected</name>
+				<description>
+					<![CDATA[Order Rejected]]>
+				</description>
+				<template>
+					<![CDATA[Order Rejected]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<user/>
+				</recipients>
+				<execution-type>onEntry</execution-type>
+			</notification>
+		</actions>
+	</state>
+	<task>
+		<name>review</name>
+		<metadata>
+			<![CDATA[{"xy":[160,0],"transitions":{"Approve Order":{"bendpoints":[]}}}]]>
+		</metadata>
+		<actions>
+			<notification>
+				<name>Review Notification</name>
+				<description>
+					<![CDATA[]]>
+				</description>
+				<template>
+					<![CDATA[${userName} sent you a ${entryType} for review in the workflow.]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>email</notification-type>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<roles>
+						<role>
+							<role-type>site</role-type>
+							<name>Order Manager</name>
+							<auto-create>false</auto-create>
+						</role>
+					</roles>
+				</recipients>
+				<execution-type>onAssignment</execution-type>
+			</notification>
+			<notification>
+				<name>Review Completion Notification</name>
+				<description>
+					<![CDATA[]]>
+				</description>
+				<template>
+					<![CDATA[Your submission was reviewed
+
+					<#if taskComments?has_content> and the reviewer applied the following ${taskComments}</#if>.]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>email</notification-type>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<user/>
+				</recipients>
+				<execution-type>onExit</execution-type>
+			</notification>
+		</actions>
+		<assignments>
+			<roles>
+				<role>
+					<role-type>site</role-type>
+					<name>Order Manager</name>
+					<auto-create>false</auto-create>
+				</role>
+				<role>
+					<role-type>site</role-type>
+					<name>Account Administrator</name>
+					<auto-create>false</auto-create>
+				</role>
+			</roles>
+		</assignments>
+		<transitions>
+			<transition>
+				<name>reject</name>
+				<target>Order Rejected</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>approve</name>
+				<target>approved</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</task>
+</workflow-definition>
