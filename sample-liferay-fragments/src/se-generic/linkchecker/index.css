@@ -1,0 +1,37 @@
+a.brokenlink { 
+	background-color: lightpink; 
+	text-decoration: line-through; 
+}
+
+a.brokenlink.xhr400::after { 
+	content: " (400)"; 
+}
+
+a.brokenlink.xhr401::after { 
+	content: " (401)"; 
+}
+
+a.brokenlink.xhr402::after { 
+	content: " (402)"; 
+}
+
+a.brokenlink.xhr403::after { 
+	content: " (403)"; 
+}
+
+a.brokenlink.xhr404::after { 
+	content: " (404)"; 
+}
+
+a.brokenlink.likelyCORSproblem {
+	background-color: yellow;
+}
+
+a.brokenlink.likelyCORSproblem::after {
+	content: " (CORS?)"; 
+}
+
+a.brokenlink.unknownProblem {
+	background-color: red;
+	text-decoration: line-through;
+}
