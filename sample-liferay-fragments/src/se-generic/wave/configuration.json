@@ -1,0 +1,14 @@
+{
+    "fieldSets": [
+        {
+            "fields": [
+                {
+                    "name": "waveColor",
+                    "label": "Wave color",
+                    "type": "colorPicker",
+                    "defaultValue": "var(--primary)"
+                }
+            ]
+        }
+    ]
+}
