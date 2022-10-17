@@ -1,3 +1,7 @@
 .portlet-boundary_com_liferay_portal_search_web_search_results_portlet_SearchResultsPortlet_ .pagination-bar {
 	display: none;
 }
+
+.portlet-boundary_com_liferay_portal_search_web_search_results_portlet_SearchResultsPortlet_ .search-total-label {
+	display: none;
+}
