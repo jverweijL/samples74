@@ -8,10 +8,10 @@
                     "description": "encoded-url-text",
                     "type": "text",
                     "typeOptions": {
-                        "placeholder": "Placeholder"
+                        "placeholder": "You can add your url here"
                     },
                     "dataType": "string",
-                    "defaultValue": "Go Somewhere"
+                    "defaultValue": ""
                 },
 							{
                     "name": "readID",
@@ -19,10 +19,10 @@
                     "description": "read-id-text",
                     "type": "text",
                     "typeOptions": {
-                        "placeholder": "Placeholder"
+                        "placeholder": "Add your css ID here"
                     },
                     "dataType": "string",
-                    "defaultValue": "Go Somewhere"
+                    "defaultValue": ""
                 },
 							{
                     "name": "readClass",
@@ -30,10 +30,10 @@
                     "description": "read-class-text",
                     "type": "text",
                     "typeOptions": {
-                        "placeholder": "Placeholder"
+                        "placeholder": "Add your css Class here"
                     },
                     "dataType": "string",
-                    "defaultValue": "Go Somewhere"
+                    "defaultValue": "readme"
                 }
             ]
         }
