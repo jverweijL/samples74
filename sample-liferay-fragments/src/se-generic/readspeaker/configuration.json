@@ -1,0 +1,41 @@
+{
+    "fieldSets": [
+        {
+            "fields": [
+                {
+                    "name": "encodedURL",
+                    "label": "Encoded URL",
+                    "description": "encoded-url-text",
+                    "type": "text",
+                    "typeOptions": {
+                        "placeholder": "Placeholder"
+                    },
+                    "dataType": "string",
+                    "defaultValue": "Go Somewhere"
+                },
+							{
+                    "name": "readID",
+                    "label": "Read ID",
+                    "description": "read-id-text",
+                    "type": "text",
+                    "typeOptions": {
+                        "placeholder": "Placeholder"
+                    },
+                    "dataType": "string",
+                    "defaultValue": "Go Somewhere"
+                },
+							{
+                    "name": "readClass",
+                    "label": "Read Class",
+                    "description": "read-class-text",
+                    "type": "text",
+                    "typeOptions": {
+                        "placeholder": "Placeholder"
+                    },
+                    "dataType": "string",
+                    "defaultValue": "Go Somewhere"
+                }
+            ]
+        }
+    ]
+}
