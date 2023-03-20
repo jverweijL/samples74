@@ -1,0 +1,22 @@
+{
+	"fieldSets": [
+		{
+			"fields": [
+				
+		{
+			"name": "height",
+			"label": "Height of Image",
+			"type": "text",                   
+			"defaultValue": "64"
+		},
+				{
+					"defaultValue": false,
+					"label": "show-site-name",
+					"name": "showSiteName",
+					"type": "checkbox"
+				}
+			],
+			"label": "General"
+		}
+	]
+}
