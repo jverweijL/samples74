@@ -1,0 +1,19 @@
+{
+	"fieldSets": [
+		        {
+            "fields": [
+                {
+                    "name": "knownHost",
+                    "label": "Known Host Name",
+                    "description": "button-text",
+                    "type": "text",
+                    "typeOptions": {
+                        "placeholder": "Placeholder"
+                    },
+                    "dataType": "string",
+                    "defaultValue": "localhost"
+                }
+            ]
+        }
+	]
+}
