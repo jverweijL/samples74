@@ -2,8 +2,10 @@
   <h1>
 	  Host Name Change Detection!
   </h1>
-	Expected Host Name: ${configuration.knownHost}<br>
-	Detected Host Name: ${themeDisplay.getRequest().getServerName()}
+	[#if themeDisplay.isSignedIn()]
+	  Expected Host Name: ${configuration.knownHost}<br>
+	  Detected Host Name: ${themeDisplay.getRequest().getServerName()}
+	[/#if]
 	<lfr-drop-zone data-lfr-drop-zone-id="knownHostChangedIndicatorDropZone">
 	  
 	</lfr-drop-zone>
