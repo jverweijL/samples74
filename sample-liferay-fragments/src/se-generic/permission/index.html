@@ -1,0 +1,7 @@
+<div class="role_restriction_fragment">
+	[#if layoutMode == "edit" || user.getRoles()?filter(
+			role -> role.name == configuration.roleName ||
+				(role.name == "Administrator" && configuration.displayToAdmin))?size > 0]
+		<lfr-drop-zone></lfr-drop-zone>
+	[/#if]
+</div>
